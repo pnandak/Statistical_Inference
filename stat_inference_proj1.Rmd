@@ -1,0 +1,111 @@
+---
+title: "Exponential Distribution Simulation"
+author: "Prasanna Nandakumar"
+date: "25-Oct-2014"
+output: html_document
+---
+### Project Objective
+
+The project is meant to answer to this particular question:
+
+    The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also also 1/lambda. Set lambda = 0.2 for all of the simulations. In this simulation, you will investigate the distribution of averages of 40 exponential(0.2)s. Note that you will need to do a thousand or so simulated averages of 40 exponentials.
+
+    Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponential(0.2)s. You should:
+
+    - Show where the distribution is centered at and compare it to the theoretical center of the distribution.
+    - Show how variable it is and compare it to the theoretical variance of the distribution.
+    - Show that the distribution is approximately normal.
+    - Evaluate the coverage of the confidence interval for 1/lambda:: $\bar X \pm 1.96 \frac{S}{\sqrt{n}}$.
+
+### Simulation
+
+The next code runs a thousand simulations of 40 exponential(0.2)s and store the values in a matrix with 1000 columns and 40 rows. Each matrix element corresponds to a value of an exponential(0.2).
+
+```{r}
+set.seed(1994)
+lambda <- 0.2
+numTests <- 1000
+testCount <- 40
+data <- matrix(rexp(numTests * testCount, rate=lambda), nrow = numTests)
+means <- rowMeans(data)
+
+# Compute the mean of each row of the generated data.
+meanDist <- apply(data, 1, mean)
+```
+
+### Question 1 & 2:
+1. Show where the distribution is centered at and compare it to the theoretical center of the distribution.
+2. Show how variable it is and compare it to the theoretical variance of the distribution.  
+
+We can now concetrate on some particular values:
+
+```{r}
+centre <- round(mean(meanDist), 3)
+theoreticalmean <- round(1/lambda, 3)
+
+SD <- round(sd(meanDist), 3)
+theoreticalSD <- round(1/(lambda * sqrt(testCount)), 3)
+
+var <- round(var(meanDist), 3)
+theoreticalvar <- round((1/(lambda * sqrt(testCount)))^2, 3)
+```
+
+
+After the computation of the values we can quickly compare them:
+
+**-   mean: `r centre` and theoreticalmean:`r theoreticalmean`**  
+
+**-   variance: `r var` and theoreticalvariance = `r theoreticalvar`**
+
+-   mean: |centre-theoreticalmean| = `r abs(centre-theoreticalmean)`
+-   variance: |var-theoreticalvar| = `r abs(var-theoreticalvar)`  
+
+**As we can see, the values are not only comparable but almost the same. 
+Computed Mean and Varaince are almost similar to the Theoretical mean and varainace**
+
+### Question 3 :Show that the distribution is approximately normal.  
+We can quickly provide a graphical rappresentation by plotting the data.  
+
+```{r}
+# plot the histogram of the means
+hist(means, breaks=50, prob=TRUE,
+     main="Distribution of means",
+     xlab="Exponential Distributions Means",
+     ylab="Density")
+lines(density(means), col="green", lwd=2, lty=2)
+# show the mean of distribution
+abline(v=1/lambda, col="blue", lwd=3)
+```
+
+**The plot shows that the distribution get close to the normal distribution.**
+
+Using a QQplot we can show that the distribution is very similar to the normal, apart from the tails that tends to diverge from the line.
+
+```{r}
+qqnorm(means, col="red", lwd=3)
+qqline(means, col="green", lwd=3)
+```
+
+### Question 4: Evaluate the coverage of the confidence interval for 1/lambda:: $\bar X \pm 1.96 \frac{S}{\sqrt{n}}$.
+
+We can finally compute the 95% confidence intervals:
+
+```{r}
+CI <- 1.96
+ll <- mean(means) - CI * (sd(means)/sqrt(testCount))
+ul <- mean(means) + CI * (sd(means)/sqrt(testCount))
+```
+
+
+**Lower interval `r round(ll, 3)` and upper interval `r round(ul, 3)`.**
+
+```{r}
+# plot the histogram of the means
+hist(means, breaks=50, prob=TRUE,
+     main="Distribution of means",
+     xlab="Exponential Distributions Means",
+     ylab="Density")
+# show the two CIs
+abline(v=c(ll, ul), col="red", lwd=3)
+```
+
